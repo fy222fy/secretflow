@@ -56,8 +56,9 @@ class Scaffold(BaseTorchModel):
         dp_strategy = kwargs.get("dp_strategy", None)
         logs = {}
 
+        optimizer = self.model.optimizers()
         for _ in range(train_steps):
-            self.optimizer.zero_grad()
+            optimizer.zero_grad()
             iter_data = next(self.train_iter)
             if len(iter_data) == 2:
                 x, y = iter_data
@@ -81,10 +82,10 @@ class Scaffold(BaseTorchModel):
             y_pred = self.model(x)
 
             # do back propagation
-            loss = self.loss(y_pred, y_t.long())
+            loss = self.model.loss(y_pred, y_t.long())
             loss.backward()
-            self.optimizer.step()
-            for m in self.metrics:
+            optimizer.step()
+            for m in self.model.metrics:
                 m.update(y_pred.cpu(), y_t.cpu())
             local_gradients = self.model.get_gradients()
             # Update local model parameters
